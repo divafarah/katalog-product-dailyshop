@@ -41,7 +41,7 @@ const ProductDetail = () => {
         setImageError(false)
 
         if (!id || !Number.isInteger(Number(id)) || Number(id) <= 0) {
-          throw new Error('Product ID tidak valid.')
+          throw new Error('Invalid Product ID.')
         }
 
         const localProduct = addedProducts.find(
@@ -61,7 +61,7 @@ const ProductDetail = () => {
         }
       } catch {
         if (isMounted) {
-          setError('Produk tidak ditemukan atau gagal dimuat.')
+          setError('Product not found or failed to load.')
         }
       } finally {
         if (isMounted) {
@@ -98,7 +98,7 @@ const ProductDetail = () => {
     addToCart(product)
 
     setCartNotice(
-      `${product.title} berhasil ditambahkan ke keranjang!`
+      `${product.title} has been added to your cart!`
     )
 
     setTimeout(() => {
@@ -147,7 +147,7 @@ const ProductDetail = () => {
           <span className="toast-icon">✓</span>
 
           <div className="toast-content">
-            <strong>Berhasil ditambahkan!</strong>
+            <strong>Successfully Added!</strong>
             <p>{cartNotice}</p>
           </div>
         </div>
