@@ -15,6 +15,7 @@ const ProductDetail = () => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [imageError, setImageError] = useState(false)
+  const [cartNotice, setCartNotice] = useState('')
 
   const {
     toggleFavorite,
@@ -79,14 +80,8 @@ const ProductDetail = () => {
   const handleDelete = () => {
     if (!product || !isAddedProduct) return
 
-    const confirmed = window.confirm(
-      `Yakin ingin menghapus ${product.title}?`
-    )
-
-    if (confirmed) {
-      removeProduct(product.id)
-      navigate('/products')
-    }
+    removeProduct(product.id)
+    navigate('/products')
   }
 
   const handleAddToCart = () => {
@@ -98,16 +93,17 @@ const ProductDetail = () => {
 
     const currentQuantity = currentItem?.quantity ?? 0
 
-    if (currentQuantity >= product.stock) {
-      window.alert('Jumlah produk di keranjang sudah mencapai batas stok.')
-      return
-    }
+    if (currentQuantity >= product.stock) return
 
     addToCart(product)
 
-    window.alert(
+    setCartNotice(
       `${product.title} berhasil ditambahkan ke keranjang!`
     )
+
+    setTimeout(() => {
+      setCartNotice('')
+    }, 2500)
   }
 
   const handleToggleFavorite = () => {
@@ -145,6 +141,18 @@ const ProductDetail = () => {
 
   return (
     <section className="product-detail">
+
+      {cartNotice && (
+        <div className="cart-toast">
+          <span className="toast-icon">✓</span>
+
+          <div className="toast-content">
+            <strong>Berhasil ditambahkan!</strong>
+            <p>{cartNotice}</p>
+          </div>
+        </div>
+      )}
+
       <Link to="/products" className="back-link">
         ← Back to Products
       </Link>

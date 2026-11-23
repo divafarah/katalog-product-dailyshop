@@ -1,9 +1,12 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 
 import { useProductContext } from '../context/ProductContext'
 import { formatRupiah } from '../utils/formatCurrency'
 
 const Cart = () => {
+  const [showClearModal, setShowClearModal] = useState(false)
+
   const {
     cartItems,
     removeFromCart,
@@ -22,13 +25,8 @@ const Cart = () => {
   )
 
   const handleClearCart = () => {
-    const confirmed = window.confirm(
-      'Yakin ingin mengosongkan semua isi keranjang?'
-    )
-
-    if (confirmed) {
-      clearCart()
-    }
+    clearCart()
+    setShowClearModal(false)
   }
 
   if (cartItems.length === 0) {
@@ -55,6 +53,53 @@ const Cart = () => {
 
   return (
     <section className="page-container cart-page">
+
+      {showClearModal && (
+        <div
+          className="clear-modal-overlay"
+          onClick={() => setShowClearModal(false)}
+        >
+          <div
+            className="clear-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="clear-modal-title"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="clear-modal-icon">
+              <span>🛒</span>
+            </div>
+
+            <h2 id="clear-modal-title">
+              Kosongkan Keranjang?
+            </h2>
+
+            <p>
+              Apakah kamu yakin ingin menghapus semua produk
+              dari keranjang?
+            </p>
+
+            <div className="clear-modal-actions">
+              <button
+                type="button"
+                className="clear-modal-cancel"
+                onClick={() => setShowClearModal(false)}
+              >
+                Batal
+              </button>
+
+              <button
+                type="button"
+                className="clear-modal-confirm"
+                onClick={handleClearCart}
+              >
+                Ya, Kosongkan
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="products-header">
         <span className="section-label">YOUR SHOPPING</span>
         <h1>Shopping Cart</h1>
@@ -151,7 +196,7 @@ const Cart = () => {
           <button
             type="button"
             className="clear-cart-btn"
-            onClick={handleClearCart}
+            onClick={() => setShowClearModal(true)}
           >
             Clear Cart
           </button>
