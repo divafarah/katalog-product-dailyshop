@@ -1,4 +1,6 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
+
 import { useProductContext } from '../context/ProductContext'
 import type { Product } from '../types/Product'
 import { formatRupiah } from '../utils/formatCurrency'
@@ -9,18 +11,35 @@ interface ProductCardProps {
 
 const ProductCard = ({ product }: ProductCardProps) => {
   const { toggleFavorite, isFavorite } = useProductContext()
+  const [imageError, setImageError] = useState(false)
+
+  const favorite = isFavorite(product.id)
 
   return (
     <div className="product-card">
       <div className="product-image">
-        <img src={product.thumbnail} alt={product.title} />
+        <img
+          src={
+            imageError
+              ? 'https://placehold.co/400x400?text=No+Image'
+              : product.thumbnail
+          }
+          alt={product.title}
+          onError={() => setImageError(true)}
+        />
 
         <button
+          type="button"
           className="favorite-btn"
           onClick={() => toggleFavorite(product)}
-          aria-label="Toggle favorite"
+          aria-label={
+            favorite
+              ? `Remove ${product.title} from favorites`
+              : `Add ${product.title} to favorites`
+          }
+          aria-pressed={favorite}
         >
-          {isFavorite(product.id) ? '♥' : '♡'}
+          {favorite ? '♥' : '♡'}
         </button>
       </div>
 

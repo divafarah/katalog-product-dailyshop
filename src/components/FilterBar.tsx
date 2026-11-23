@@ -15,7 +15,6 @@ const FilterBar = ({
 }: FilterBarProps) => {
   return (
     <div className="filter-container">
-
       <div className="filter-group">
         <label htmlFor="category-filter">
           Category
@@ -25,6 +24,7 @@ const FilterBar = ({
           id="category-filter"
           value={category}
           onChange={(e) => onCategoryChange(e.target.value)}
+          aria-label="Filter products by category"
         >
           <option value="all">All Categories</option>
 
@@ -45,6 +45,7 @@ const FilterBar = ({
           id="sort-filter"
           value={sort}
           onChange={(e) => onSortChange(e.target.value)}
+          aria-label="Sort products"
         >
           <option value="default">Default</option>
           <option value="name-asc">Name (A-Z)</option>
@@ -52,7 +53,6 @@ const FilterBar = ({
           <option value="price-desc">Price (High to Low)</option>
         </select>
       </div>
-
     </div>
   )
 }

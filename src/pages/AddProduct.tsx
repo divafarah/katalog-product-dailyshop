@@ -12,29 +12,44 @@ const AddProduct = () => {
   const { addProduct, addedProducts } = useProductContext()
 
   const [categories, setCategories] = useState<string[]>([])
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    let isMounted = true
+
     const fetchCategories = async () => {
       try {
         const data = await getCategories()
 
-        const addedCategories = addedProducts.map(
-          (product) => product.category
-        )
+        const addedCategories = addedProducts
+          .map((product) => product.category)
+          .filter(Boolean)
 
-        setCategories(
-          [...new Set([...data, ...addedCategories])].sort()
-        )
+        if (isMounted) {
+          setCategories(
+            [...new Set([...data, ...addedCategories])].sort()
+          )
+        }
       } catch {
-        setCategories(
-          [...new Set(addedProducts.map(
-            (product) => product.category
-          ))].sort()
-        )
+        if (isMounted) {
+          const addedCategories = addedProducts
+            .map((product) => product.category)
+            .filter(Boolean)
+
+          setCategories([...new Set(addedCategories)].sort())
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false)
+        }
       }
     }
 
     fetchCategories()
+
+    return () => {
+      isMounted = false
+    }
   }, [addedProducts])
 
   const handleAddProduct = (productData: Omit<Product, 'id'>) => {
@@ -55,10 +70,14 @@ const AddProduct = () => {
         <p>Add a new product to your DailyShop collection.</p>
       </div>
 
-      <ProductForm
-        onAddProduct={handleAddProduct}
-        categories={categories}
-      />
+      {loading ? (
+        <p>Loading categories...</p>
+      ) : (
+        <ProductForm
+          onAddProduct={handleAddProduct}
+          categories={categories}
+        />
+      )}
     </section>
   )
 }

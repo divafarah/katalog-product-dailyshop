@@ -15,7 +15,7 @@ const Products = () => {
   const { addedProducts } = useProductContext()
 
   const [searchParams, setSearchParams] = useSearchParams()
-  const [categories, setCategories] = useState<string[]>([])
+  const [apiCategories, setApiCategories] = useState<string[]>([])
 
   const search = searchParams.get('search') || ''
   const category = searchParams.get('category') || 'all'
@@ -29,27 +29,39 @@ const Products = () => {
   const productsPerPage = 8
 
   useEffect(() => {
+    let isMounted = true
+
     const fetchCategories = async () => {
       try {
         const data = await getCategories()
-        setCategories(data)
+
+        if (isMounted) {
+          setApiCategories(data)
+        }
       } catch {
-        setCategories([])
+        if (isMounted) {
+          setApiCategories([])
+        }
       }
     }
 
     fetchCategories()
+
+    return () => {
+      isMounted = false
+    }
   }, [])
 
-  useEffect(() => {
-    setCategories((prev) => {
-      const newCategories = addedProducts
-        .map((product) => product.category)
-        .filter((item) => !prev.includes(item))
+  const categories = useMemo(() => {
+    const addedCategories = addedProducts
+      .map((product) => product.category)
+      .filter(Boolean)
 
-      return [...prev, ...newCategories]
-    })
-  }, [addedProducts])
+    return [...new Set([
+      ...apiCategories,
+      ...addedCategories,
+    ])].sort()
+  }, [apiCategories, addedProducts])
 
   const updateParams = (key: string, value: string) => {
     setSearchParams((prev) => {
@@ -70,9 +82,13 @@ const Products = () => {
   const filteredProducts = useMemo(() => {
     let result = [...addedProducts, ...products]
 
-    if (search) {
+    if (search.trim()) {
+      const keyword = search.trim().toLowerCase()
+
       result = result.filter((product) =>
-        product.title.toLowerCase().includes(search.toLowerCase())
+        product.title.toLowerCase().includes(keyword) ||
+        product.description.toLowerCase().includes(keyword) ||
+        product.brand?.toLowerCase().includes(keyword)
       )
     }
 
@@ -102,6 +118,16 @@ const Products = () => {
     Math.max(1, totalPages)
   )
 
+  useEffect(() => {
+    if (currentPage !== validPage) {
+      setSearchParams((prev) => {
+        const params = new URLSearchParams(prev)
+        params.set('page', String(validPage))
+        return params
+      })
+    }
+  }, [currentPage, validPage, setSearchParams])
+
   const startIndex = (validPage - 1) * productsPerPage
 
   const displayedProducts = filteredProducts.slice(
@@ -111,7 +137,6 @@ const Products = () => {
 
   return (
     <section className="products-page">
-
       <div className="products-header">
         <span className="section-label">OUR COLLECTION</span>
         <h1>Explore Our Products</h1>
@@ -140,17 +165,21 @@ const Products = () => {
       </div>
 
       {loading && (
-        <p className="loading-message">Loading products...</p>
+        <p className="loading-message">
+          Loading products...
+        </p>
       )}
 
       {error && (
-        <p className="error-message">{error}</p>
+        <p className="error-message">
+          {error}
+        </p>
       )}
 
       {!loading && !error && (
         <>
           <p className="results-count">
-            Showing {filteredProducts.length} products
+            Showing {displayedProducts.length} of {filteredProducts.length} products
           </p>
 
           {displayedProducts.length === 0 ? (
@@ -169,20 +198,21 @@ const Products = () => {
             </div>
           )}
 
-          <Pagination
-            currentPage={validPage}
-            totalPages={totalPages}
-            onPageChange={(page) =>
-              setSearchParams((prev) => {
-                const params = new URLSearchParams(prev)
-                params.set('page', String(page))
-                return params
-              })
-            }
-          />
+          {totalPages > 1 && (
+            <Pagination
+              currentPage={validPage}
+              totalPages={totalPages}
+              onPageChange={(page) =>
+                setSearchParams((prev) => {
+                  const params = new URLSearchParams(prev)
+                  params.set('page', String(page))
+                  return params
+                })
+              }
+            />
+          )}
         </>
       )}
-
     </section>
   )
 }

@@ -1,11 +1,15 @@
 import { Link } from 'react-router-dom'
+
 import { useProducts } from '../hooks/useProducts'
+import { useProductContext } from '../context/ProductContext'
 import ProductCard from '../components/ProductCard'
 
 const Home = () => {
   const { products, loading, error } = useProducts()
+  const { addedProducts } = useProductContext()
 
-  const featuredProducts = products.slice(0, 4)
+  const allProducts = [...addedProducts, ...products]
+  const featuredProducts = allProducts.slice(0, 4)
 
   return (
     <div className="home-page">
@@ -63,7 +67,7 @@ const Home = () => {
           <p>No products available.</p>
         )}
 
-        {!loading && !error && (
+        {!loading && !error && featuredProducts.length > 0 && (
           <div className="product-grid">
             {featuredProducts.map((product) => (
               <ProductCard

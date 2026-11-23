@@ -1,5 +1,6 @@
 import {
   createContext,
+  useCallback,
   useContext,
   useEffect,
   useState,
@@ -79,51 +80,35 @@ export const ProductProvider = ({
   )
 
   useEffect(() => {
-    localStorage.setItem(
-      'dailyshop-favorites',
-      JSON.stringify(favorites)
-    )
+    localStorage.setItem('dailyshop-favorites', JSON.stringify(favorites))
   }, [favorites])
 
   useEffect(() => {
-    localStorage.setItem(
-      'dailyshop-products',
-      JSON.stringify(addedProducts)
-    )
+    localStorage.setItem('dailyshop-products', JSON.stringify(addedProducts))
   }, [addedProducts])
 
   useEffect(() => {
-    localStorage.setItem(
-      'dailyshop-cart',
-      JSON.stringify(cartItems)
-    )
+    localStorage.setItem('dailyshop-cart', JSON.stringify(cartItems))
   }, [cartItems])
 
   useEffect(() => {
-    localStorage.setItem(
-      'dailyshop-orders',
-      JSON.stringify(orders)
-    )
+    localStorage.setItem('dailyshop-orders', JSON.stringify(orders))
   }, [orders])
 
-  const addProduct = (product: Product) => {
+  const addProduct = useCallback((product: Product) => {
     setAddedProducts((prev) => [product, ...prev])
-  }
+  }, [])
 
-  const updateProduct = (updatedProduct: Product) => {
+  const updateProduct = useCallback((updatedProduct: Product) => {
     setAddedProducts((prev) =>
       prev.map((product) =>
-        product.id === updatedProduct.id
-          ? updatedProduct
-          : product
+        product.id === updatedProduct.id ? updatedProduct : product
       )
     )
 
     setFavorites((prev) =>
       prev.map((product) =>
-        product.id === updatedProduct.id
-          ? updatedProduct
-          : product
+        product.id === updatedProduct.id ? updatedProduct : product
       )
     )
 
@@ -134,9 +119,9 @@ export const ProductProvider = ({
           : item
       )
     )
-  }
+  }, [])
 
-  const removeProduct = (id: number) => {
+  const removeProduct = useCallback((id: number) => {
     setAddedProducts((prev) =>
       prev.filter((product) => product.id !== id)
     )
@@ -148,29 +133,33 @@ export const ProductProvider = ({
     setCartItems((prev) =>
       prev.filter((item) => item.product.id !== id)
     )
-  }
+  }, [])
 
-  const toggleFavorite = (product: Product) => {
+  const toggleFavorite = useCallback((product: Product) => {
     setFavorites((prev) => {
       const exists = prev.some((item) => item.id === product.id)
 
-      if (exists) {
-        return prev.filter((item) => item.id !== product.id)
-      }
-
-      return [...prev, product]
+      return exists
+        ? prev.filter((item) => item.id !== product.id)
+        : [...prev, product]
     })
-  }
+  }, [])
 
-  const isFavorite = (id: number) => {
+  const isFavorite = useCallback((id: number) => {
     return favorites.some((item) => item.id === id)
-  }
+  }, [favorites])
 
-  const addToCart = (product: Product) => {
+  const addToCart = useCallback((product: Product) => {
     setCartItems((prev) => {
       const exists = prev.find(
         (item) => item.product.id === product.id
       )
+
+      const currentQuantity = exists?.quantity ?? 0
+
+      if (currentQuantity >= product.stock) {
+        return prev
+      }
 
       if (exists) {
         return prev.map((item) =>
@@ -182,31 +171,33 @@ export const ProductProvider = ({
 
       return [...prev, { product, quantity: 1 }]
     })
-  }
+  }, [])
 
-  const removeFromCart = (id: number) => {
+  const removeFromCart = useCallback((id: number) => {
     setCartItems((prev) =>
       prev.filter((item) => item.product.id !== id)
     )
-  }
+  }, [])
 
-  const updateCartQuantity = (id: number, quantity: number) => {
+  const updateCartQuantity = useCallback((id: number, quantity: number) => {
     if (quantity < 1) return
 
     setCartItems((prev) =>
-      prev.map((item) =>
-        item.product.id === id
-          ? { ...item, quantity }
-          : item
-      )
+      prev.map((item) => {
+        if (item.product.id !== id) return item
+
+        const safeQuantity = Math.min(quantity, item.product.stock)
+
+        return { ...item, quantity: safeQuantity }
+      })
     )
-  }
+  }, [])
 
-  const clearCart = () => {
+  const clearCart = useCallback(() => {
     setCartItems([])
-  }
+  }, [])
 
-  const addOrder = (order: NewOrder) => {
+  const addOrder = useCallback((order: NewOrder) => {
     const newOrder: Order = {
       ...order,
       id: Date.now(),
@@ -214,7 +205,7 @@ export const ProductProvider = ({
     }
 
     setOrders((prev) => [newOrder, ...prev])
-  }
+  }, [])
 
   return (
     <ProductContext.Provider

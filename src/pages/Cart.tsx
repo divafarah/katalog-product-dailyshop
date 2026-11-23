@@ -21,6 +21,16 @@ const Cart = () => {
     0
   )
 
+  const handleClearCart = () => {
+    const confirmed = window.confirm(
+      'Yakin ingin mengosongkan semua isi keranjang?'
+    )
+
+    if (confirmed) {
+      clearCart()
+    }
+  }
+
   if (cartItems.length === 0) {
     return (
       <section className="page-container cart-page">
@@ -34,6 +44,7 @@ const Cart = () => {
           <span className="empty-cart-icon">🛒</span>
           <h2>Your cart is empty</h2>
           <p>Looks like you haven't added anything yet.</p>
+
           <Link to="/products" className="detail-btn">
             Explore Products
           </Link>
@@ -66,6 +77,7 @@ const Cart = () => {
 
                 <div className="cart-quantity">
                   <button
+                    type="button"
                     onClick={() =>
                       updateCartQuantity(
                         item.product.id,
@@ -73,6 +85,7 @@ const Cart = () => {
                       )
                     }
                     disabled={item.quantity <= 1}
+                    aria-label={`Kurangi jumlah ${item.product.title}`}
                   >
                     −
                   </button>
@@ -80,16 +93,23 @@ const Cart = () => {
                   <span>{item.quantity}</span>
 
                   <button
+                    type="button"
                     onClick={() =>
                       updateCartQuantity(
                         item.product.id,
                         item.quantity + 1
                       )
                     }
+                    disabled={item.quantity >= item.product.stock}
+                    aria-label={`Tambah jumlah ${item.product.title}`}
                   >
                     +
                   </button>
                 </div>
+
+                <small>
+                  Stok tersedia: {item.product.stock}
+                </small>
               </div>
 
               <div className="cart-item-actions">
@@ -100,6 +120,7 @@ const Cart = () => {
                 </strong>
 
                 <button
+                  type="button"
                   className="cart-remove-btn"
                   onClick={() => removeFromCart(item.product.id)}
                 >
@@ -128,12 +149,9 @@ const Cart = () => {
           </Link>
 
           <button
+            type="button"
             className="clear-cart-btn"
-            onClick={() => {
-              if (window.confirm('Kosongkan semua isi keranjang?')) {
-                clearCart()
-              }
-            }}
+            onClick={handleClearCart}
           >
             Clear Cart
           </button>

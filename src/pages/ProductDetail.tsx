@@ -14,6 +14,7 @@ const ProductDetail = () => {
   const [product, setProduct] = useState<Product | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [imageError, setImageError] = useState(false)
 
   const {
     toggleFavorite,
@@ -21,6 +22,7 @@ const ProductDetail = () => {
     addedProducts,
     removeProduct,
     addToCart,
+    cartItems,
   } = useProductContext()
 
   const isAddedProduct = addedProducts.some(
@@ -28,13 +30,17 @@ const ProductDetail = () => {
   )
 
   useEffect(() => {
+    let isMounted = true
+
     const fetchProduct = async () => {
       try {
         setLoading(true)
         setError(null)
+        setProduct(null)
+        setImageError(false)
 
-        if (!id) {
-          throw new Error('Product ID tidak ditemukan.')
+        if (!id || !Number.isInteger(Number(id)) || Number(id) <= 0) {
+          throw new Error('Product ID tidak valid.')
         }
 
         const localProduct = addedProducts.find(
@@ -42,23 +48,36 @@ const ProductDetail = () => {
         )
 
         if (localProduct) {
-          setProduct(localProduct)
+          if (isMounted) {
+            setProduct(localProduct)
+          }
         } else {
           const data = await getProductById(id)
-          setProduct(data)
+
+          if (isMounted) {
+            setProduct(data)
+          }
         }
       } catch {
-        setError('Produk tidak ditemukan atau gagal dimuat.')
+        if (isMounted) {
+          setError('Produk tidak ditemukan atau gagal dimuat.')
+        }
       } finally {
-        setLoading(false)
+        if (isMounted) {
+          setLoading(false)
+        }
       }
     }
 
     fetchProduct()
+
+    return () => {
+      isMounted = false
+    }
   }, [id, addedProducts])
 
   const handleDelete = () => {
-    if (!product) return
+    if (!product || !isAddedProduct) return
 
     const confirmed = window.confirm(
       `Yakin ingin menghapus ${product.title}?`
@@ -71,25 +90,58 @@ const ProductDetail = () => {
   }
 
   const handleAddToCart = () => {
-    if (!product) return
+    if (!product || product.stock <= 0) return
+
+    const currentItem = cartItems.find(
+      (item) => item.product.id === product.id
+    )
+
+    const currentQuantity = currentItem?.quantity ?? 0
+
+    if (currentQuantity >= product.stock) {
+      window.alert('Jumlah produk di keranjang sudah mencapai batas stok.')
+      return
+    }
 
     addToCart(product)
 
-    alert(`${product.title} berhasil ditambahkan ke keranjang!`)
+    window.alert(
+      `${product.title} berhasil ditambahkan ke keranjang!`
+    )
+  }
+
+  const handleToggleFavorite = () => {
+    if (!product) return
+
+    toggleFavorite(product)
   }
 
   if (loading) {
-    return <p className="loading-message">Loading product details...</p>
+    return (
+      <p className="loading-message">
+        Loading product details...
+      </p>
+    )
   }
 
   if (error || !product) {
     return (
       <section className="page-container">
         <h2>{error || 'Product not found'}</h2>
-        <Link to="/products">Back to Products</Link>
+
+        <Link to="/products" className="detail-btn">
+          Back to Products
+        </Link>
       </section>
     )
   }
+
+  const currentCartItem = cartItems.find(
+    (item) => item.product.id === product.id
+  )
+
+  const cartQuantity = currentCartItem?.quantity ?? 0
+  const isStockLimitReached = cartQuantity >= product.stock
 
   return (
     <section className="product-detail">
@@ -99,7 +151,15 @@ const ProductDetail = () => {
 
       <div className="detail-container">
         <div className="detail-image">
-          <img src={product.thumbnail} alt={product.title} />
+          <img
+            src={
+              imageError
+                ? 'https://placehold.co/600x600?text=No+Image'
+                : product.thumbnail
+            }
+            alt={product.title}
+            onError={() => setImageError(true)}
+          />
 
           {isAddedProduct && (
             <>
@@ -111,6 +171,7 @@ const ProductDetail = () => {
               </Link>
 
               <button
+                type="button"
                 className="delete-detail-btn"
                 onClick={handleDelete}
               >
@@ -141,24 +202,34 @@ const ProductDetail = () => {
             <p>
               <strong>Brand:</strong> {product.brand || 'No brand'}
             </p>
+
             <p>
               <strong>Stock:</strong> {product.stock}
             </p>
+
             <p>
               <strong>Discount:</strong> {product.discountPercentage}%
             </p>
           </div>
 
           <button
+            type="button"
             className="add-to-cart-btn"
             onClick={handleAddToCart}
+            disabled={product.stock <= 0 || isStockLimitReached}
           >
-            🛒 Add to Cart
+            {product.stock <= 0
+              ? 'Out of Stock'
+              : isStockLimitReached
+                ? 'Stock Limit Reached'
+                : '🛒 Add to Cart'}
           </button>
 
           <button
+            type="button"
             className="favorite-btn-detail"
-            onClick={() => toggleFavorite(product)}
+            onClick={handleToggleFavorite}
+            aria-pressed={isFavorite(product.id)}
           >
             {isFavorite(product.id)
               ? '♥ Remove from Favorites'

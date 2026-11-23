@@ -26,60 +26,90 @@ const OrderHistory = () => {
         </div>
       ) : (
         <div className="order-history-list">
-          {orders.map((order) => (
-            <article className="history-card" key={order.id}>
-              <div className="history-header">
-                <div>
-                  <span className="section-label">ORDER ID</span>
-                  <h3>#{order.id}</h3>
+          {orders.map((order) => {
+            const orderDate = new Date(order.orderDate)
+            const isValidDate = !Number.isNaN(orderDate.getTime())
+
+            const totalItems = order.cartItems.reduce(
+              (total, item) => total + item.quantity,
+              0
+            )
+
+            return (
+              <article className="history-card" key={order.id}>
+                <div className="history-header">
+                  <div>
+                    <span className="section-label">ORDER ID</span>
+                    <h3>#{order.id}</h3>
+                  </div>
+
+                  <span className="order-status">
+                    Completed
+                  </span>
                 </div>
 
-                <span className="order-status">
-                  Completed
-                </span>
-              </div>
-
-              <p className="history-date">
-                {new Date(order.orderDate).toLocaleString('id-ID')}
-              </p>
-
-              <div className="history-customer">
-                <p>
-                  <strong>Recipient:</strong> {order.customerName}
+                <p className="history-date">
+                  {isValidDate
+                    ? orderDate.toLocaleString('id-ID', {
+                        dateStyle: 'long',
+                        timeStyle: 'short',
+                      })
+                    : 'Tanggal tidak tersedia'}
                 </p>
-                <p>
-                  <strong>Phone:</strong> {order.phone}
-                </p>
-                <p>
-                  <strong>Address:</strong> {order.address}
-                </p>
-              </div>
 
-              <div className="history-products">
-                {order.cartItems.map((item) => (
-                  <div
-                    className="checkout-item"
-                    key={item.product.id}
-                  >
-                    <span>
-                      {item.product.title} x {item.quantity}
-                    </span>
+                <div className="history-customer">
+                  <p>
+                    <strong>Recipient:</strong> {order.customerName}
+                  </p>
 
-                    <strong>
-                      {formatRupiah(
-                        item.product.price * item.quantity
-                      )}
-                    </strong>
-                  </div>
-                ))}
-              </div>
+                  <p>
+                    <strong>Phone:</strong> {order.phone}
+                  </p>
 
-              <div className="history-total">
-                <span>Total Payment</span>
-                <strong>{formatRupiah(order.totalPrice)}</strong>
-              </div>
-            </article>
-          ))}
+                  <p>
+                    <strong>Address:</strong> {order.address}
+                  </p>
+                </div>
+
+                <div className="history-products">
+                  {order.cartItems.map((item) => (
+                    <div
+                      className="checkout-item"
+                      key={item.product.id}
+                    >
+                      <span>
+                        {item.product.title} × {item.quantity}
+                      </span>
+
+                      <strong>
+                        {formatRupiah(
+                          item.product.price * item.quantity
+                        )}
+                      </strong>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="history-total">
+                  <span>
+                    Total Payment ({totalItems} items)
+                  </span>
+
+                  <strong>
+                    {formatRupiah(order.totalPrice)}
+                  </strong>
+                </div>
+
+                <Link
+                  to={`/orders/${order.id}`}
+                  className="detail-btn"
+                  aria-label={`View details for order ${order.id}`}
+                >
+                  View Order Details
+                </Link>
+              </article>
+            )
+          })}
         </div>
       )}
     </section>

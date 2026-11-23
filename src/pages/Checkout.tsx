@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import type { FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 
 import { useProductContext } from '../context/ProductContext'
@@ -7,11 +8,12 @@ import { formatRupiah } from '../utils/formatCurrency'
 const Checkout = () => {
   const navigate = useNavigate()
 
-  const { cartItems, addOrder } = useProductContext()
+  const { cartItems } = useProductContext()
 
   const [customerName, setCustomerName] = useState('')
   const [phone, setPhone] = useState('')
   const [address, setAddress] = useState('')
+  const [error, setError] = useState('')
 
   const totalItems = cartItems.reduce(
     (total, item) => total + item.quantity,
@@ -23,25 +25,65 @@ const Checkout = () => {
     0
   )
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
+    setError('')
 
-    addOrder({
-      customerName,
-      phone,
-      address,
-      cartItems,
+    if (
+      !customerName.trim() ||
+      !phone.trim() ||
+      !address.trim()
+    ) {
+      setError('Semua informasi pengiriman wajib diisi.')
+      return
+    }
+
+    if (customerName.trim().length < 2) {
+      setError('Nama minimal terdiri dari 2 karakter.')
+      return
+    }
+
+    if (address.trim().length < 10) {
+      setError('Alamat minimal terdiri dari 10 karakter.')
+      return
+    }
+
+    const cleanPhone = phone.replace(/[\s-]/g, '')
+
+    if (!/^\+?\d{10,15}$/.test(cleanPhone)) {
+      setError('Masukkan nomor telepon yang valid (10–15 digit).')
+      return
+    }
+
+    if (cartItems.length === 0) {
+      setError('Keranjang belanja kamu masih kosong.')
+      return
+    }
+
+    const invalidStock = cartItems.find(
+      (item) =>
+        item.quantity < 1 ||
+        item.quantity > item.product.stock ||
+        item.product.stock <= 0
+    )
+
+    if (invalidStock) {
+      setError(
+        `Stok ${invalidStock.product.title} tidak mencukupi. Silakan periksa keranjang.`
+      )
+      return
+    }
+
+    const orderData = {
+      customerName: customerName.trim(),
+      phone: cleanPhone,
+      address: address.trim(),
+      cartItems: cartItems.map((item) => ({ ...item })),
       totalPrice,
-    })
+    }
 
     navigate('/order-success', {
-      state: {
-        customerName,
-        phone,
-        address,
-        cartItems,
-        totalPrice,
-      },
+      state: orderData,
     })
   }
 
@@ -78,6 +120,7 @@ const Checkout = () => {
             onChange={(event) => setCustomerName(event.target.value)}
             placeholder="Enter your full name"
             required
+            minLength={2}
           />
 
           <label htmlFor="phone">Phone Number</label>
@@ -98,7 +141,14 @@ const Checkout = () => {
             placeholder="Enter your complete address"
             rows={5}
             required
+            minLength={10}
           />
+
+          {error && (
+            <p className="form-error" role="alert">
+              {error}
+            </p>
+          )}
 
           <button type="submit" className="place-order-btn">
             Place Order

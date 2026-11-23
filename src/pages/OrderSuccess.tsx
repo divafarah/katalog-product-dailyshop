@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { Link, Navigate, useLocation } from 'react-router-dom'
 
 import { useProductContext } from '../context/ProductContext'
@@ -15,17 +15,37 @@ interface OrderData {
 
 const OrderSuccess = () => {
   const location = useLocation()
-  const { clearCart } = useProductContext()
+  const { addOrder, clearCart } = useProductContext()
 
   const order = location.state as OrderData | null
+  const hasProcessed = useRef(false)
+
+  const isValidOrder =
+    !!order &&
+    !!order.cartItems?.length &&
+    !!order.customerName &&
+    !!order.phone &&
+    !!order.address
 
   useEffect(() => {
-    if (order) {
-      clearCart()
+    if (!isValidOrder || !order || hasProcessed.current) {
+      return
     }
-  }, [])
 
-  if (!order || !order.cartItems?.length) {
+    hasProcessed.current = true
+
+    addOrder({
+      customerName: order.customerName,
+      phone: order.phone,
+      address: order.address,
+      cartItems: order.cartItems,
+      totalPrice: order.totalPrice,
+    })
+
+    clearCart()
+  }, [isValidOrder, order, addOrder, clearCart])
+
+  if (!isValidOrder || !order) {
     return <Navigate to="/cart" replace />
   }
 
@@ -45,9 +65,17 @@ const OrderSuccess = () => {
         <div className="order-information">
           <h2>Shipping Information</h2>
 
-          <p><strong>Name:</strong> {order.customerName}</p>
-          <p><strong>Phone:</strong> {order.phone}</p>
-          <p><strong>Address:</strong> {order.address}</p>
+          <p>
+            <strong>Name:</strong> {order.customerName}
+          </p>
+
+          <p>
+            <strong>Phone:</strong> {order.phone}
+          </p>
+
+          <p>
+            <strong>Address:</strong> {order.address}
+          </p>
         </div>
 
         <div className="order-information">

@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+
 import { useProductContext } from '../context/ProductContext'
 import ProductCard from '../components/ProductCard'
 
@@ -16,11 +17,14 @@ const Favorites = () => {
       {favorites.length === 0 ? (
         <div className="favorites-empty">
           <div className="empty-icon">♡</div>
+
           <h2>No Favorites Yet</h2>
+
           <p>
             You haven't added any favorite products.
             Start exploring and save the products you love!
           </p>
+
           <Link to="/products" className="primary-btn">
             Explore Products →
           </Link>

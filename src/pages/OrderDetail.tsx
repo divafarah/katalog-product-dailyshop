@@ -15,6 +15,14 @@ const OrderDetail = () => {
     return <Navigate to="/orders" replace />
   }
 
+  const orderDate = new Date(order.orderDate)
+  const isValidDate = !Number.isNaN(orderDate.getTime())
+
+  const totalItems = order.cartItems.reduce(
+    (total, item) => total + item.quantity,
+    0
+  )
+
   return (
     <section className="page-container order-detail-page">
       <div className="products-header">
@@ -30,50 +38,65 @@ const OrderDetail = () => {
             <h3>#{order.id}</h3>
           </div>
 
-          <span className="order-status">Completed</span>
+          <span className="order-status">
+            Completed
+          </span>
         </div>
 
         <p className="history-date">
-          Order Date: {new Date(order.orderDate).toLocaleString('id-ID')}
+          Order Date:{' '}
+          {isValidDate
+            ? orderDate.toLocaleString('id-ID', {
+                dateStyle: 'long',
+                timeStyle: 'short',
+              })
+            : 'Tanggal tidak tersedia'}
         </p>
 
         <div className="history-customer">
           <h2>Shipping Information</h2>
 
-          <p><strong>Recipient:</strong> {order.customerName}</p>
-          <p><strong>Phone:</strong> {order.phone}</p>
-          <p><strong>Address:</strong> {order.address}</p>
+          <p>
+            <strong>Recipient:</strong> {order.customerName}
+          </p>
+
+          <p>
+            <strong>Phone:</strong> {order.phone}
+          </p>
+
+          <p>
+            <strong>Address:</strong> {order.address}
+          </p>
         </div>
 
         <div className="history-products">
           <h2>Products Ordered</h2>
 
           {order.cartItems.map((item) => (
-            <div className="checkout-item" key={item.product.id}>
+            <div
+              className="checkout-item"
+              key={item.product.id}
+            >
               <span>
-                {item.product.title} x {item.quantity}
+                {item.product.title} × {item.quantity}
               </span>
 
               <strong>
-                {formatRupiah(item.product.price * item.quantity)}
+                {formatRupiah(
+                  item.product.price * item.quantity
+                )}
               </strong>
             </div>
           ))}
         </div>
 
         <div className="history-total">
-          <span>Total Payment</span>
+          <span>Total Payment ({totalItems} items)</span>
           <strong>{formatRupiah(order.totalPrice)}</strong>
         </div>
-        <Link
-  to={`/orders/${order.id}`}
-  className="detail-btn"
->
-  View Details
-</Link>
 
         <Link to="/orders" className="detail-btn">
-          Back to Order History
+          ← Back to Order History
         </Link>
       </div>
     </section>

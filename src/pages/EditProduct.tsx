@@ -15,16 +15,26 @@ const EditProduct = () => {
 
   const [categories, setCategories] = useState<string[]>([])
   const [product, setProduct] = useState<Product | null>(null)
+  const [loadingCategories, setLoadingCategories] = useState(true)
 
   useEffect(() => {
+    const productId = Number(id)
+
+    if (!id || !Number.isFinite(productId)) {
+      setProduct(null)
+      return
+    }
+
     const foundProduct = addedProducts.find(
-      (item) => item.id === Number(id)
+      (item) => item.id === productId
     )
 
     setProduct(foundProduct || null)
   }, [id, addedProducts])
 
   useEffect(() => {
+    let isMounted = true
+
     const fetchCategories = async () => {
       try {
         const data = await getCategories()
@@ -33,19 +43,31 @@ const EditProduct = () => {
           (item) => item.category
         )
 
-        setCategories(
-          [...new Set([...data, ...addedCategories])].sort()
-        )
+        if (isMounted) {
+          setCategories(
+            [...new Set([...data, ...addedCategories])].sort()
+          )
+        }
       } catch {
-        setCategories(
-          [...new Set(addedProducts.map(
-            (item) => item.category
-          ))].sort()
-        )
+        if (isMounted) {
+          setCategories(
+            [...new Set(
+              addedProducts.map((item) => item.category)
+            )].sort()
+          )
+        }
+      } finally {
+        if (isMounted) {
+          setLoadingCategories(false)
+        }
       }
     }
 
     fetchCategories()
+
+    return () => {
+      isMounted = false
+    }
   }, [addedProducts])
 
   const handleEditProduct = (productData: Omit<Product, 'id'>) => {
@@ -64,7 +86,10 @@ const EditProduct = () => {
     return (
       <section className="page-container">
         <h2>Product not found.</h2>
-        <Link to="/products">Back to Products</Link>
+
+        <Link to="/products" className="detail-btn">
+          Back to Products
+        </Link>
       </section>
     )
   }
@@ -77,11 +102,15 @@ const EditProduct = () => {
         <p>Update your product information.</p>
       </div>
 
-      <ProductForm
-        initialProduct={product}
-        onEditProduct={handleEditProduct}
-        categories={categories}
-      />
+      {loadingCategories ? (
+        <p>Loading categories...</p>
+      ) : (
+        <ProductForm
+          initialProduct={product}
+          onEditProduct={handleEditProduct}
+          categories={categories}
+        />
+      )}
     </section>
   )
 }
