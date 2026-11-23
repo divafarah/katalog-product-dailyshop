@@ -71,12 +71,12 @@ const Cart = () => {
             </div>
 
             <h2 id="clear-modal-title">
-              Kosongkan Keranjang?
+              Clear Your Cart?
             </h2>
 
             <p>
-              Apakah kamu yakin ingin menghapus semua produk
-              dari keranjang?
+              Are you sure you want to remove all products
+              from your shopping cart?
             </p>
 
             <div className="clear-modal-actions">
@@ -85,7 +85,7 @@ const Cart = () => {
                 className="clear-modal-cancel"
                 onClick={() => setShowClearModal(false)}
               >
-                Batal
+                Cancel
               </button>
 
               <button
@@ -93,7 +93,7 @@ const Cart = () => {
                 className="clear-modal-confirm"
                 onClick={handleClearCart}
               >
-                Ya, Kosongkan
+                Yes, Clear Cart
               </button>
             </div>
           </div>
@@ -130,7 +130,7 @@ const Cart = () => {
                       )
                     }
                     disabled={item.quantity <= 1}
-                    aria-label={`Kurangi jumlah ${item.product.title}`}
+                    aria-label={`Decrease quantity of ${item.product.title}`}
                   >
                     −
                   </button>
@@ -146,14 +146,14 @@ const Cart = () => {
                       )
                     }
                     disabled={item.quantity >= item.product.stock}
-                    aria-label={`Tambah jumlah ${item.product.title}`}
+                    aria-label={`Increase quantity of ${item.product.title}`}
                   >
                     +
                   </button>
                 </div>
 
                 <small>
-                  Stok tersedia: {item.product.stock}
+                  Available Stock: {item.product.stock}
                 </small>
               </div>
 
