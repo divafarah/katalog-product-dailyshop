@@ -9,7 +9,6 @@ const Home = () => {
 
   return (
     <div className="home-page">
-
       <section className="hero-section">
         <div className="hero-content">
           <span className="hero-label">
@@ -17,25 +16,18 @@ const Home = () => {
           </span>
 
           <h1>
-            Find Your Everyday
-            <span> Favorites.</span>
+            Everything You Need,
+            <span> All in One Place.</span>
           </h1>
 
           <p>
-            Discover amazing products for your everyday needs.
-            Find your favorites and explore something new.
+            Temukan koleksi lengkap dari fashion, kebutuhan rumah & furniture,
+            kosmetik, hingga camilan favoritmu.
           </p>
 
           <Link to="/products" className="hero-btn">
             Explore Products →
           </Link>
-        </div>
-
-        <div className="hero-image">
-          <img
-            src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=800"
-            alt="DailyShop shopping collection"
-          />
         </div>
       </section>
 
@@ -45,6 +37,7 @@ const Home = () => {
             <span className="section-label">
               OUR COLLECTION
             </span>
+
             <h2>Featured Products</h2>
             <p>Discover our handpicked products for you.</p>
           </div>
@@ -81,7 +74,6 @@ const Home = () => {
           </div>
         )}
       </section>
-
     </div>
   )
 }
